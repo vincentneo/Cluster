@@ -60,7 +60,7 @@ extension Tests {
         XCTAssertEqual(annotationView.reuseIdentifier, identifier)
         if let _annotation = annotationView.annotation as? ClusterAnnotation {
             XCTAssertEqual(_annotation, annotation)
-            XCTAssertEqual(annotationView.countLabel.text, text)
+            XCTAssertEqual(annotationView.countLabel.stringValue, text)
         } else {
             XCTAssertTrue(false)
         }

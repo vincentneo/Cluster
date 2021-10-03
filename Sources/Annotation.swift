@@ -7,6 +7,7 @@
 //
 
 import MapKit
+import Cocoa
 
 open class Annotation: MKPointAnnotation {
     // @available(swift, obsoleted: 6.0, message: "Please migrate to StyledClusterAnnotationView.")
@@ -44,16 +45,19 @@ open class ClusterAnnotation: Annotation {
  The view associated with your cluster annotations.
  */
 open class ClusterAnnotationView: MKAnnotationView {
-    open lazy var countLabel: UILabel = {
-        let label = UILabel()
-        label.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    open lazy var countLabel: NSTextField = {
+        let label = NSTextField()
+        //label.autoresizingMask = [.f, .flexibleHeight]
+        label.autoresizingMask = [.height, .width]
         label.backgroundColor = .clear
         label.font = .boldSystemFont(ofSize: 13)
         label.textColor = .white
-        label.textAlignment = .center
-        label.adjustsFontSizeToFitWidth = true
-        label.minimumScaleFactor = 0.5
-        label.baselineAdjustment = .alignCenters
+        label.isSelectable = false
+        label.isEditable = false
+        label.alignment = .center
+        label.maximumNumberOfLines = 1
+        label.preferredMaxLayoutWidth = label.frame.width
+        //label.baselineAdjustment = .alignCenters
         self.addSubview(label)
         return label
     }()
@@ -67,7 +71,7 @@ open class ClusterAnnotationView: MKAnnotationView {
     open func configure() {
         guard let annotation = annotation as? ClusterAnnotation else { return }
         let count = annotation.annotations.count
-        countLabel.text = "\(count)"
+        countLabel.stringValue = "\(count)"
     }
 }
 
@@ -81,18 +85,30 @@ public enum ClusterAnnotationStyle {
      - `color`: The color of the annotation circle
      - `radius`: The radius of the annotation circle
      */
-    case color(UIColor, radius: CGFloat)
+    case color(NSColor, radius: CGFloat)
     
     /**
      Displays the annotation as an image.
      */
-    case image(UIImage?)
+    case image(NSImage?)
 }
 
 /**
  A cluster annotation view that supports styles.
  */
 open class StyledClusterAnnotationView: ClusterAnnotationView {
+    
+    var _backgroundColor = NSColor.clear
+    var backgroundColor: NSColor {
+        get {
+            return _backgroundColor
+        }
+        set {
+            self.wantsLayer = true
+            layer?.backgroundColor = newValue.cgColor
+            _backgroundColor = newValue
+        }
+    }
     
     /**
      The style of the cluster annotation view.
@@ -138,18 +154,19 @@ open class StyledClusterAnnotationView: ClusterAnnotationView {
             default: break
             }
             frame = CGRect(origin: frame.origin, size: CGSize(width: diameter, height: diameter))
-            countLabel.text = "\(count)"
+            countLabel.stringValue = "\(count)"
         }
     }
     
-    override open func layoutSubviews() {
-        super.layoutSubviews()
+    open override func layout() {
+        super.layout()
         
         if case .color = style {
-            layer.masksToBounds = true
-            layer.cornerRadius = image == nil ? bounds.width / 2 : 0
+            self.needsLayout = true
+            layer?.masksToBounds = true
+            layer?.cornerRadius = image == nil ? bounds.width / 2 : 0
             countLabel.frame = bounds
         }
     }
-    
+
 }
