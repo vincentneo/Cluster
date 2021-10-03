@@ -168,12 +168,13 @@ open class ClusterManager {
      - Parameters:
         - annotations: An array of annotation objects. Each object in the array must conform to the MKAnnotation protocol.
      */
-    open func add(_ annotations: [MKAnnotation]) {
+    open func add(_ annotations: [MKAnnotation], completion: @escaping () -> () = {}) {
         operationQueue.cancelAllOperations()
         dispatchQueue.async(flags: .barrier) { [weak self] in
             for annotation in annotations {
                 self?.tree.add(annotation)
             }
+            completion()
         }
     }
     
